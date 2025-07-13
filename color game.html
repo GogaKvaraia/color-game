@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Color Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f8ffae 0%, #43cea2 100%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .game-card {
+            background: #fffbe7;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(60,60,60,0.12), 0 1.5px 6px rgba(60,60,60,0.08);
+            padding: 36px 32px 32px 32px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        #level {
+            font-size: 1.5em;
+            margin-bottom: 12px;
+            color: #3b3b3b;
+            letter-spacing: 1px;
+        }
+        #targetColor {
+            width: 120px;
+            height: 60px;
+            margin: 20px auto 24px auto;
+            border: 2.5px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(60,60,60,0.08);
+        }
+        .choice {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            margin: 10px 8px;
+            border: 3px solid #f8ffae;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: border 0.2s, transform 0.15s;
+            box-shadow: 0 1.5px 6px rgba(60,60,60,0.08);
+        }
+        .choice:hover {
+            border: 3px solid #43cea2;
+            transform: scale(1.08);
+        }
+        #choices {
+            margin: 20px 0 10px 0;
+        }
+        #message {
+            font-size: 1.2em;
+            margin: 14px 0 6px 0;
+            min-height: 1.5em;
+            color: #2d2d2d;
+        }
+        #adBanner {
+            margin: 18px auto 0 auto;
+            display: block;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(60,60,60,0.10);
+            width: 320px;
+            height: 90px;
+            background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%);
+            position: relative;
+            cursor: pointer;
+            border: 2px solid #ffb347;
+        }
+        #adBanner .ad-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: left;
+            width: 90%;
+        }
+        #adBanner .ad-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #d35400;
+            margin-bottom: 4px;
+        }
+        #adBanner .ad-desc {
+            font-size: 0.95em;
+            color: #444;
+        }
+        #adBanner .ad-link {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #2980b9;
+            text-decoration: underline;
+        }
+        #adBanner::after {
+            content: "Ad";
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: #ffb347;
+            color: #fff;
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-card">
+        <h2 id="level"></h2>
+        <div id="targetColor"></div>
+        <div id="choices"></div>
+        <div id="message"></div>
+        <div id="adBanner" tabindex="0">
+            <div class="ad-content">
+                <div class="ad-title">Discover Amazing Content!</div>
+                <div class="ad-desc">Click here to visit an awesome YouTube channel for cool videos and more.</div>
+                <span class="ad-link">youtube.com/@DE_RE16</span>
+            </div>
+        </div>
+    </div>
+    <!-- Sound effects -->
+    <audio id="sound-correct" src="https://cdn.pixabay.com/audio/2022/03/15/audio_115b9b7bfa.mp3"></audio>
+    <audio id="sound-wrong" src="https://cdn.pixabay.com/audio/2022/03/15/audio_126bfae4b6.mp3"></audio>
+    <script>
+        let currentLevel = 1;
+
+        function randomColor() {
+            return 'rgb(' +
+                Math.floor(Math.random()*256) + ',' +
+                Math.floor(Math.random()*256) + ',' +
+                Math.floor(Math.random()*256) + ')';
+        }
+
+        function generateLevel(level) {
+            const numChoices = Math.min(3 + level - 1, 10);
+            const colors = [];
+            for(let i=0;i<numChoices;i++) colors.push(randomColor());
+            const answerIdx = Math.floor(Math.random()*numChoices);
+            return {numChoices, colors, answerIdx};
+        }
+
+        function playSound(id) {
+            const audio = document.getElementById(id);
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play();
+            }
+        }
+
+        function renderLevel() {
+            const {numChoices, colors, answerIdx} = generateLevel(currentLevel);
+            document.getElementById('level').textContent = `Level: ${currentLevel}`;
+            document.getElementById('targetColor').style.background = colors[answerIdx];
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            colors.forEach((color, idx) => {
+                const btn = document.createElement('div');
+                btn.className = 'choice';
+                btn.style.background = color;
+                btn.onclick = function() {
+                    if(idx === answerIdx) {
+                        playSound('sound-correct');
+                        document.getElementById('message').textContent = '🎉 Correct! Next level...';
+                        setTimeout(()=>{
+                            currentLevel++;
+                            renderLevel();
+                        }, 1000);
+                    } else {
+                        playSound('sound-wrong');
+                        document.getElementById('message').textContent = '❌ Wrong! Back to Level 1.';
+                        btn.style.border = '3px solid #ff6f61';
+                        setTimeout(()=>{
+                            currentLevel = 1;
+                            renderLevel();
+                        }, 1000);
+                    }
+                };
+                choicesDiv.appendChild(btn);
+            });
+            document.getElementById('message').textContent = '';
+        }
+
+        // Ad click handler
+        document.getElementById('adBanner').onclick = function() {
+            window.open('https://www.youtube.com/@DE_RE16', '_blank');
+        };
+        document.getElementById('adBanner').onkeypress = function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                window.open('https://www.youtube.com/@DE_RE16', '_blank');
+            }
+        };
+
+        renderLevel();
+    </script>
+</body>
+</html>
